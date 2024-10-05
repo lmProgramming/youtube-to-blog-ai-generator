@@ -52,6 +52,7 @@
             <h1 class="text-2xl font-bold">AI Blog Generator</h1>
         </div>
         <div>
+            <a href="#" class="text-white hover:underline">Welcome {{user.username}}</a>
             <a href="logout" class="text-white hover:underline">Logout</a>
         </div>
     </nav>
@@ -105,6 +106,43 @@
         Made by <a href="https://github.com/lmProgramming?tab=repositories" class="font-style: italic">LMProgramming</a>, based on tutorial by <a href="https://www.youtube.com/watch?v=ftKiHCDVwfA" class="font-style: italic">Code With Tomi.</a>
     </footer>
 
-    <script src="frontend/index.js"></script>
+    <script>
+        document.getElementById('generateBlogButton').addEventListener('click', async () => {
+            const youtubeLink = document.getElementById('youtubeLink').value;
+            const loadingIndicator = document.getElementById('loading-circle');
+            const blogContent = document.getElementById('blogContent');
+
+            if (youtubeLink){
+                loadingIndicator.style.display = 'block';
+                loadingIndicator.classList.remove("hidden")
+                blogContent.innerHTML = '';
+
+                const endpointUrl = '/generate-blog';
+
+                try {
+                    const response = await fetch(endpointUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ link: youtubeLink })
+                    });
+
+                    const data = await response.json();
+
+                    blogContent.innerHTML = data.content;
+                    loadingIndicator.classList.add("hidden");
+                } catch (error) {
+                    console.error(error);
+                    alert('An error occurred while generating the blog post. Please try again later.');
+                    loadingIndicator.classList.add("hidden");
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                }
+            } else {
+                alert('Please enter a valid YouTube video link.');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -2,11 +2,33 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
-# Create your views here.
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+@login_required
 def index(request) -> HttpResponse:
     return render(request, 'index.html')
 
+@csrf_exempt
+def generate_blog(request) -> HttpResponse:
+    if request.method == "POST":
+        pass
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 def user_login(request) -> HttpResponse:
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(username=username, password=password)
+        if user is None:    
+            error_message = 'Invalid username or password'
+            return render(request, 'login.html', {'error_message': error_message})
+        
+        login(request, user)
+        return redirect('/')
     return render(request, 'login.html')
 
 def user_signup(request) -> HttpResponse:
@@ -31,4 +53,5 @@ def user_signup(request) -> HttpResponse:
     return render(request, 'signup.html')
 
 def user_logout(request) -> HttpResponse:
-    pass
+    logout(request)
+    return redirect('/')
