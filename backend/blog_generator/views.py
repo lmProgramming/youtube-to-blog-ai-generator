@@ -1,3 +1,4 @@
+import os
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -5,18 +6,63 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+import json
+from pytube import YouTube
+from django.conf import settings
+import assemblyai as aai
 
 @login_required
 def index(request) -> HttpResponse:
     return render(request, 'index.html')
 
+def youtube_title(link: str) -> str:
+    yt = YouTube(link)
+    return yt.title
+
 @csrf_exempt
 def generate_blog(request) -> HttpResponse:
-    if request.method == "POST":
-        pass
-    else:
+    if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+    try:
+        data = json.loads(request.body)
+        youtube_link = data['link'] 
+        
+    except (KeyError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Invalid request body'}, status=400)  
+    
+    youtube_data = YouTube(youtube_link)
+    title: str = youtube_data.title
+    audio_file = download_audio(youtube_data)
+    transcription = get_transcription(audio_file)
+    
+    if not transcription:
+        return JsonResponse({'error': 'Transcription failed'}, status=500)
+    
+    return JsonResponse({"content": youtube_link})   
+
+def download_audio(youtube_data) -> str:
+    audio_file = youtube_data.streams.filter(only_audio=True).first()
+    out_file = audio_file.download(output_path=settings.MEDIA_ROOT)
+    base: str = os.path.splitext(out_file)[0]
+    new_file: str = base + ".mp3"
+    os.rename(out_file, new_file)
+    return new_file
+
+def get_assembly_ai_api_key() -> str:
+    return open('api_keys/assembly_ai_api_key').read().strip()
+
+def get_openai_api_key() -> str:
+    return open('api_keys/openai_api_key').read().strip()
+    
+def get_transcription(audio_file) -> str:
+    aai.settings.api_key = get_assembly_ai_api_key()
+    transcriber = aai.Transcriber()
+
+    transcript: aai.Transcript = transcriber.transcribe(audio_file)
+
+    return transcript.text
+    
 def user_login(request) -> HttpResponse:
     if request.method == "POST":
         username = request.POST.get('username')
