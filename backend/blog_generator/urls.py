@@ -1,6 +1,8 @@
 from django.urls import path
 from django.urls.resolvers import URLPattern
 from blog_generator import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns: list[URLPattern] = [
     path('', views.index, name='index'),
@@ -9,3 +11,5 @@ urlpatterns: list[URLPattern] = [
     path('logout', views.user_logout, name='logout'),
     path('generate-blog', views.generate_blog, name='generate-blog')
 ]
+
+#urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

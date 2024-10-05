@@ -7,9 +7,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
-from pytube import YouTube
+from openai.types.chat.chat_completion import ChatCompletion
+from pytubefix import YouTube
 from django.conf import settings
 import assemblyai as aai
+import openai
 
 @login_required
 def index(request) -> HttpResponse:
@@ -33,15 +35,28 @@ def generate_blog(request) -> HttpResponse:
     
     youtube_data = YouTube(youtube_link)
     title: str = youtube_data.title
+    print(title)
     audio_file = download_audio(youtube_data)
-    transcription = get_transcription(audio_file)
-    
+    print(audio_file)
+    transcription = get_transcription(audio_file)    
     if not transcription:
         return JsonResponse({'error': 'Transcription failed'}, status=500)
     
-    return JsonResponse({"content": youtube_link})   
+    blog_content = generate_blog_text(transcription)
+    if not blog_content:
+        return JsonResponse({'error': 'Blog generation failed'}, status=500)
+    
+    return JsonResponse({"content": blog_content})   
 
-def download_audio(youtube_data) -> str:
+def download_audio(youtube_data: YouTube) -> str:
+    # check if file already exists on disk
+    expected_path = os.path.join(settings.MEDIA_ROOT, youtube_data.title + '.mp3')
+    if os.path.exists(expected_path):
+        return expected_path
+    
+    print(youtube_data.title + '.mp3')
+    print("Magnus Carlsen LOSES UP A QUEEN!!!!!!.mp3")
+    
     audio_file = youtube_data.streams.filter(only_audio=True).first()
     out_file = audio_file.download(output_path=settings.MEDIA_ROOT)
     base: str = os.path.splitext(out_file)[0]
@@ -61,7 +76,32 @@ def get_transcription(audio_file) -> str:
 
     transcript: aai.Transcript = transcriber.transcribe(audio_file)
 
+    with open('transcript.txt', 'w') as f:
+        f.write(transcript.text)
     return transcript.text
+
+def generate_blog_text(transcription) -> str:
+    openai.api_key = get_openai_api_key()
+
+    client = openai.OpenAI()
+    
+    prompt: str = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\nArticle:"
+
+    completion: ChatCompletion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        max_tokens=1000
+    )
+
+    generated_blog: str = completion.choices[0].message.content.strip()
+    
+    return generated_blog
     
 def user_login(request) -> HttpResponse:
     if request.method == "POST":
