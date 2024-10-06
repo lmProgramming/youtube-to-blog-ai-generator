@@ -113,6 +113,12 @@ def generate_blog_text(transcription) -> str:
 def blog_list(request) -> HttpResponse:
     blogs: BaseManager[BlogPost] = BlogPost.objects.filter(author=request.user).order_by('-date_posted')
     return render(request, 'all-blogs.html', {'blog_posts': blogs})
+
+def blog_details(request, pk) -> HttpResponse:
+    blog_article_detail: BlogPost = BlogPost.objects.get(id=pk)
+    if request.user != blog_article_detail.author:
+        return HttpResponse('Unauthorized', status=401)
+    return render(request, 'blog-details.html', {'blog_post': blog_article_detail})
     
 def user_login(request) -> HttpResponse:
     if request.method == "POST":
