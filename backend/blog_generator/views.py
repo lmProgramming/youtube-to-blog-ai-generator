@@ -38,10 +38,8 @@ def generate_blog(request) -> HttpResponse:
     
     youtube_data = YouTube(youtube_link)
     title: str = youtube_data.title
-    print(title)
-    audio_file = download_audio(youtube_data)
-    print(audio_file)
-    transcription = get_transcription(audio_file)    
+    audio_file: str = download_audio(youtube_data)
+    transcription: str = get_transcription(audio_file)    
     if not transcription:
         return JsonResponse({'error': 'Transcription failed'}, status=500)
     
@@ -77,14 +75,25 @@ def get_assembly_ai_api_key() -> str:
 def get_openai_api_key() -> str:
     return open('api_keys/openai_api_key').read().strip()
     
-def get_transcription(audio_file) -> str:
+def get_transcription(audio_file) -> str:    
+    transcript_filename = os.path.splitext(os.path.basename(audio_file))[0] + ".txt"
+        
+    final_path = os.path.join(settings.TRANSCRIPTS_ROOT, transcript_filename)
+    
+    if os.path.exists(final_path):
+        return open(final_path).read()
+    
+    transcript: str = transcribe_audio(audio_file)
+
+    with open(final_path, 'w') as f:
+        f.write(transcript)
+    return transcript
+
+def transcribe_audio(audio_file: str) -> str:
     aai.settings.api_key = get_assembly_ai_api_key()
     transcriber = aai.Transcriber()
 
     transcript: aai.Transcript = transcriber.transcribe(audio_file)
-
-    with open('transcript.txt', 'w') as f:
-        f.write(transcript.text)
     return transcript.text
 
 def generate_blog_text(transcription) -> str:
