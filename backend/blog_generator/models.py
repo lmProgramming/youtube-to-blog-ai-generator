@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 class BlogPost(models.Model):
     youtube_title = models.CharField(max_length=300)
     youtube_link = models.URLField()
+    blog_title = models.CharField(max_length=300)
     content = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
