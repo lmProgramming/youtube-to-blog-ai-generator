@@ -1,4 +1,5 @@
 import os
+from django.db.models.manager import BaseManager
 from django.http import HttpResponse
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.auth import authenticate, login, logout
@@ -12,6 +13,7 @@ from pytubefix import YouTube
 from django.conf import settings
 import assemblyai as aai
 import openai
+from .models import BlogPost
 
 @login_required
 def index(request) -> HttpResponse:
@@ -45,6 +47,13 @@ def generate_blog(request) -> HttpResponse:
     blog_content = generate_blog_text(transcription)
     if not blog_content:
         return JsonResponse({'error': 'Blog generation failed'}, status=500)
+    
+    BlogPost.objects.create(
+        youtube_title=title,
+        youtube_link=youtube_link, 
+        content=blog_content, 
+        author=request.user,
+    )
     
     return JsonResponse({"content": blog_content})   
 
@@ -102,6 +111,10 @@ def generate_blog_text(transcription) -> str:
     generated_blog: str = completion.choices[0].message.content.strip()
     
     return generated_blog
+
+def blog_list(request) -> HttpResponse:
+    blogs: BaseManager[BlogPost] = BlogPost.objects.filter(user=request.user)
+    return render(request, 'all-blogs.html', {'blogs_articles': blogs})
     
 def user_login(request) -> HttpResponse:
     if request.method == "POST":

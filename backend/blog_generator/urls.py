@@ -9,7 +9,6 @@ urlpatterns: list[URLPattern] = [
     path('login', views.user_login, name='login'),
     path('signup', views.user_signup, name='signup'),
     path('logout', views.user_logout, name='logout'),
-    path('generate-blog', views.generate_blog, name='generate-blog')
+    path('generate-blog', views.generate_blog, name='generate-blog'),
+    path('blog-list', views.blog_list, name='blog-list'),
 ]
-
-#urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
