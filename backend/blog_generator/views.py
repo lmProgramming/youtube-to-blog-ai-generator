@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractUser, User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from openai.types.chat.chat_completion import ChatCompletion
@@ -24,7 +23,6 @@ def youtube_title(link: str) -> str:
     yt = YouTube(link)
     return yt.title
 
-@csrf_exempt
 def generate_blog(request) -> HttpResponse:
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
