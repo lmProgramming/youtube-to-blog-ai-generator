@@ -27,12 +27,12 @@
              <section>
                 <h2 class="text-xl mb-4 font-semibold">All Blog Posts</h2>
                 <div class="space-y-4">
-                    { % for blog in blog_posts % }
-                    <div class="border border-gray-300 p-4 rounded-lg">
-                        <h3 class="text-lg font-semibold">blog</h3>
-                        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Saepe, laboriosam!</p>
-                    </div>
-                    { % endfor % }
+                    {% for blog in blog_posts %}
+                        <div class="border border-gray-300 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold">{{blog.youtube_title}}</h3>
+                            <p>{{blog.content|truncatechars:80}}</p>
+                        </div>
+                    {% endfor %}
                     <!-- Repeat -->
                 </div>
              </section>

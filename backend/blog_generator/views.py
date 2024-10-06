@@ -13,6 +13,7 @@ from pytubefix import YouTube
 from django.conf import settings
 import assemblyai as aai
 import openai
+from pytubefix.streams import Stream
 from .models import BlogPost
 
 @login_required
@@ -59,15 +60,12 @@ def generate_blog(request) -> HttpResponse:
 
 def download_audio(youtube_data: YouTube) -> str:
     # check if file already exists on disk
-    expected_path = os.path.join(settings.MEDIA_ROOT, youtube_data.title + '.mp3')
+    expected_path: str = os.path.join(settings.MEDIA_ROOT, youtube_data.title + '.mp3')
     if os.path.exists(expected_path):
         return expected_path
     
-    print(youtube_data.title + '.mp3')
-    print("Magnus Carlsen LOSES UP A QUEEN!!!!!!.mp3")
-    
-    audio_file = youtube_data.streams.filter(only_audio=True).first()
-    out_file = audio_file.download(output_path=settings.MEDIA_ROOT)
+    audio_file: Stream = youtube_data.streams.filter(only_audio=True).first()
+    out_file: str = audio_file.download(output_path=settings.MEDIA_ROOT)
     base: str = os.path.splitext(out_file)[0]
     new_file: str = base + ".mp3"
     os.rename(out_file, new_file)
@@ -113,8 +111,8 @@ def generate_blog_text(transcription) -> str:
     return generated_blog
 
 def blog_list(request) -> HttpResponse:
-    blogs: BaseManager[BlogPost] = BlogPost.objects.filter(user=request.user)
-    return render(request, 'all-blogs.html', {'blogs_articles': blogs})
+    blogs: BaseManager[BlogPost] = BlogPost.objects.filter(author=request.user).order_by('-date_posted')
+    return render(request, 'all-blogs.html', {'blog_posts': blogs})
     
 def user_login(request) -> HttpResponse:
     if request.method == "POST":
