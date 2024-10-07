@@ -117,31 +117,31 @@ def generate_blog_text(transcription, youtube_title) -> dict[str, str]:
 
     generated_blog: str | None = completion.choices[0].message.content
     
-    print(generated_blog)
-       
-    if not generated_blog:
-        raise Exception('Blog generation failed - no content returned from OpenAI')
-    
-    generated_blog = generated_blog.strip()
-    
+    if generated_blog is None:
+        raise Exception('Blog generation failed - no response from OpenAI')
+
+    title, content = extract_title_and_content(generated_blog)
+
+    return {"title": title, "content": content}
+
+def extract_title_and_content(generated_blog: str) -> tuple[str, str]:
     title_match: re.Match[str] | None = re.search(r"#Title:\s*(.*)", generated_blog)
     content_match: re.Match[str] | None = re.search(r"#Content:\s*(.*)", generated_blog, re.DOTALL)
 
     if not title_match:
         raise Exception('Blog generation failed - could not find title')
-    
-    content: str = ""
-    if not content_match:
-        try:
-            content = generated_blog.split('\n', 1)[1].strip()
-        except:
-            raise Exception('Blog generation failed - could not find content')
-    else:
-        content = content_match.group(1).strip()        
 
     title: str = title_match.group(1).strip()
-    
-    return {"title": title, "content": content}
+
+    if not content_match:
+        try:
+            content: str = generated_blog.split('\n', 1)[1].strip()
+        except IndexError:
+            raise Exception('Blog generation failed - could not find content')
+    else:
+        content = content_match.group(1).strip()
+
+    return title, content
 
 def blog_list(request) -> HttpResponse:
     blogs: BaseManager[BlogPost] = BlogPost.objects.filter(author=request.user).order_by('-date_posted')
