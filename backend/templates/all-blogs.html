@@ -23,7 +23,7 @@
                     {% for blog in blog_posts %}
                     <a href="blog-details/{{blog.id}}">
                         <div class="border border-gray-300 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold">{{blog.youtube_title}}</h3>
+                            <h3 class="text-lg font-semibold">{{blog.blog_title}}</h3>
                             <p>{{blog.content|truncatechars:80}}</p>
                         </div>
                     </a>
