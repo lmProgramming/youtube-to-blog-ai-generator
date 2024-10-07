@@ -21,12 +21,20 @@
                 <h2 class="text-xl mb-4 font-semibold">All Blog Posts</h2>
                 <div class="space-y-4">
                     {% for blog in blog_posts %}
-                    <a href="blog-details/{{blog.id}}">
-                        <div class="border border-gray-300 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold">{{blog.blog_title}}</h3>
-                            <p>{{blog.content|truncatechars:80}}</p>
-                        </div>
-                    </a>
+                    <div class="flex justify-between items-center border border-gray-300 p-4 rounded-lg">
+                        <a href="blog-details/{{blog.id}}">
+                            <div>
+                                <h3 class="text-lg font-semibold">{{blog.blog_title}}</h3>
+                                <p>{{blog.content|truncatechars:80}}</p>
+                            </div>
+                        </a>
+                        <form action="{% url 'delete-blog' blog.id %}" method="post" class="inline-block">
+                            {% csrf_token %}
+                            <button type="submit" class="ml-4 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-700">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
                     {% endfor %}
                 </div>
              </section>

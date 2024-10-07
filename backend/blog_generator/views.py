@@ -153,6 +153,13 @@ def blog_details(request, pk) -> HttpResponse:
         return HttpResponse('Unauthorized', status=401)
     return render(request, 'blog-details.html', {'blog_post': blog_article_detail})
     
+def delete_blog(request, pk) -> HttpResponse:
+    blog_article: BlogPost = BlogPost.objects.get(id=pk)
+    if request.user != blog_article.author:
+        return HttpResponse('Unauthorized', status=401)
+    blog_article.delete()
+    return redirect('/blog-list')
+
 def user_login(request) -> HttpResponse:
     if request.method == "POST":
         username = request.POST.get('username')
