@@ -1,6 +1,7 @@
 # Simple YouTube to blog generator
 Generates a pretty terrible blog by transcribing the video from a link with AssemblyAI, and then uses OpenAI API to generate text.
 Based on the [Learn Python Backend Development by Building 3 Projects \[Full Course\]](https://www.youtube.com/watch?v=ftKiHCDVwfA&t=10088s) tutorial by [CodeWithTomi](https://www.youtube.com/c/CodeWithTomi) (the first project).
+Improved in several ways - basic checking of user inputs, minor added functionality and slight visual polish.
 
 ## Tech stack
 Django for backend, simple HTML for frontend.
