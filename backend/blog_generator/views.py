@@ -15,6 +15,7 @@ import openai
 from pytubefix.streams import Stream
 from .models import BlogPost
 import re
+import enum
 
 @login_required
 def index(request) -> HttpResponse:
@@ -175,25 +176,58 @@ def user_login(request) -> HttpResponse:
     return render(request, 'login.html')
 
 def user_signup(request) -> HttpResponse:
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        repeat_password = request.POST.get('repeatPassword')
+    if request.method != 'POST':
+        return render(request, 'signup.html')
         
-        if password != repeat_password:
-            error_message = 'Passwords do not match'
-            return render(request, 'signup.html', {'error_message': error_message})
-        
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-            login(request, user)
-            return redirect('/')
-        except:
-            error_message = 'Username already exists'
-            return render(request, 'signup.html', {'error_message': error_message})            
-    return render(request, 'signup.html')
+    username = request.POST.get('username')
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+    repeat_password = request.POST.get('repeatPassword')
+    
+    if len(username) < 2:
+        error_message = 'Username must be at least 2 characters long'
+        return render(request, 'signup.html', {'error_message': error_message})         
+    
+    if len(email) < 2:
+        error_message = 'Email must be at least 2 characters long'
+        return render(request, 'signup.html', {'error_message': error_message})  
+                
+    password_validation: PasswordValidationResponse = validate_password(password)
+    if password_validation != PasswordValidationResponse.VALID:
+        error_message = 'Password must be at least 8 characters long, contain at least one letter, one digit, and one special character'
+        return render(request, 'signup.html', {'error_message': error_message})
+    
+    if password != repeat_password:
+        error_message = 'Passwords do not match'
+        return render(request, 'signup.html', {'error_message': error_message})
+    
+    try:
+        user = User.objects.create_user(username, email, password)
+        user.save()
+        login(request, user)
+        return redirect('/')
+    except:
+        error_message = 'Username already exists'
+        return render(request, 'signup.html', {'error_message': error_message})            
+
+class PasswordValidationResponse(enum.Enum):
+    VALID = 1
+    INVALID_LENGTH = 2
+    NO_DIGIT = 3
+    NO_LETTER = 4
+    NO_SPECIAL_CHAR = 5
+
+def validate_password(password: str) -> PasswordValidationResponse:
+    if len(password) < 8:
+        return PasswordValidationResponse.INVALID_LENGTH
+    if not any(char.isdigit() for char in password):
+        return PasswordValidationResponse.NO_DIGIT
+    if not any(char.isalpha() for char in password):
+        return PasswordValidationResponse.NO_LETTER
+    if not any(char in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for char in password):
+        return PasswordValidationResponse.NO_SPECIAL_CHAR
+    
+    return PasswordValidationResponse.VALID
 
 def user_logout(request) -> HttpResponse:
     logout(request)
