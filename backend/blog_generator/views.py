@@ -59,19 +59,15 @@ def generate_blog(request) -> HttpResponse:
     return JsonResponse({"content": blog_content})   
 
 def download_audio(youtube_data: YouTube) -> str:
-    expected_path: str = os.path.join(settings.MEDIA_ROOT, youtube_data.title + '.mp3')
+    expected_path: str = os.path.join(settings.MEDIA_ROOT, youtube_data.video_id + '.mp3')
     if os.path.exists(expected_path):
         return expected_path
     
     audio_file: Stream = youtube_data.streams.filter(only_audio=True).first()
     out_file: str = audio_file.download(output_path=settings.MEDIA_ROOT)
-    base: str = os.path.splitext(out_file)[0]
-    new_file: str = base + ".mp3"
-    try:
-        os.rename(out_file, new_file)
-    except FileExistsError:
-        pass
-    return new_file
+    os.rename(out_file, expected_path)
+    
+    return expected_path
 
 def get_assembly_ai_api_key() -> str:
     return open('api_keys/assembly_ai_api_key').read().strip()

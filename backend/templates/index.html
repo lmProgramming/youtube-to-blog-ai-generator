@@ -95,6 +95,9 @@
             <!-- Generated blog section -->
             <section class="mt-10 flex-grow">
                 <h2 class="text-xl mb-4 font-semibold">Generated Blog Article</h2>
+                <div id="blogTitle" class="text-2xl font-semibold text-gray-800">
+
+                </div>
                 <div id="blogContent" class="mt-2 text-gray-700 space-y-4">
                     
                     
@@ -129,11 +132,13 @@
             const youtubeLink = document.getElementById('youtubeLink').value;
             const loadingIndicator = document.getElementById('loading-circle');
             const blogContent = document.getElementById('blogContent');
+            const blogTitle = document.getElementById('blogTitle');
             
             if (youtubeLink){
                 loadingIndicator.style.display = 'block';
                 loadingIndicator.classList.remove("hidden")
                 blogContent.innerHTML = '';
+                blogTitle.innerHTML = '';
 
                 const endpointUrl = '/generate-blog';
 
