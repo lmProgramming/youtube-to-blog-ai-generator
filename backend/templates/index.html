@@ -155,6 +155,7 @@
                     const data = await response.json();
 
                     blogContent.innerHTML = data.content;
+                    blogTitle.innerHTML = data.blog_title;
                     loadingIndicator.classList.add("hidden");
                 } catch (error) {
                     alert('An error occurred while generating the blog post. Please try again later.');
